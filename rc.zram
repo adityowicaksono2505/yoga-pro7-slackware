@@ -1,0 +1,31 @@
+#!/bin/bash
+# ZRAM Setup for Kucing1000cc
+# Load konfigurasi dari file default
+. /etc/default/zram
+
+case "$1" in
+    start)
+        echo "Starting ZRAM with ${ZRAMSIZE}KB..."
+        # Load modul kernel dengan limit 1 device
+        modprobe zram num_devices=${ZRAMNUMBER:-1}
+        
+        # Set kompresi pake zstd
+        echo ${ZRAMCOMPRESSION:-zstd} > /sys/block/zram0/comp_algorithm
+        
+        # Set ukuran dari file /etc/default/zram
+        # Kita tambahin 'K' karena angkanya dalam Kilobytes
+        echo "${ZRAMSIZE}K" > /sys/block/zram0/disksize
+        
+        # Aktifkan sebagai swap
+        mkswap /dev/zram0
+        swapon -p ${ZRAMPRIORITY:-100} /dev/zram0
+        ;;
+    stop)
+        echo "Stopping ZRAM..."
+        swapoff /dev/zram0 2>/dev/null
+        echo 1 > /sys/block/zram0/reset 2>/dev/null
+        ;;
+    *)
+        echo "Usage: $0 {start|stop}"
+        exit 1
+esac

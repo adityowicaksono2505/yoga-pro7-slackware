@@ -63,12 +63,35 @@ fi
 printf "11. %-15s : %s\n" "Power Status" "$POWER_OUT"
 
 # 12. ZRAM Usage
-Z_DATA=$(zramctl --noheadings --output DATA,COMPR /dev/zram0 | awk '{$1=$1; print $1 " " $2}')
-printf "12. %-15s : %s (Ori vs Compr)\n" "ZRAM Usage" "$Z_DATA"
+# Ambil angka murni dalam bytes (--bytes) agar bisa dihitung awk
+Z_STATS=$(zramctl --noheadings --bytes --output DATA,COMPR /dev/zram0 | awk '{
+    # Rumus Ratio: Data Asli dibagi Data Kompresi
+    ratio = ($2 > 0) ? $1/$2 : 1;
+    
+    # Ambil lagi format human readable buat tampilan teks
+    cmd = "zramctl --noheadings --output DATA,COMPR /dev/zram0";
+    cmd | getline d;
+    split(d, human, " ");
+    
+    printf "%s (Original) -> %s (Compressed) | Ratio: %.2fx", human[1], human[2], ratio
+}')
+
+printf "12. %-15s : %s\n" "ZRAM Usage" "$Z_STATS"
 
 # 13. XFS Health
-XFS_FRAG=$(xfs_db -c frag -r /dev/nvme0n1p3 | grep "fragmentation factor" | awk '{print $7}')
-printf "13. %-15s : %s Fragmentation\n" "XFS Health" "$XFS_FRAG"
+# Ambil angka fragmentasi (pake awk yang lama udah bener)
+XFS_FRAG=$(xfs_db -c frag -r /dev/nvme0n1p3 | grep "fragmentation factor" | awk '{print $7}' | tr -d '%')
+
+# Logika penentuan status (Sehat atau Perlu Defrag)
+# Kita pake bc karena XFS_FRAG itu angka desimal/koma
+if (( $(echo "$XFS_FRAG < 15.0" | bc -l) )); then
+    STATUS="(HEALTHY)"
+else
+    STATUS="(NEED DEFRAG)"
+fi
+
+# Tampilkan dengan printf biar rapih sejajar
+printf "13. %-15s : %s%% Fragmentation %s\n" "XFS Health" "$XFS_FRAG" "$STATUS"
 
 # 14. Network & Speed (Real-time)
 IP_L=$(ip addr show | grep -w "inet" | grep -v "127.0.0.1" | awk '{print $2}' | cut -d/ -f1 | head -n1)

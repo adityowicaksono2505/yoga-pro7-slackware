@@ -1,0 +1,86 @@
+#!/bin/bash
+# KUCING1000cc - System Monitoring Script
+export PATH=$PATH:/sbin:/usr/sbin:/usr/local/sbin:/usr/bin:/usr/local/bin
+
+echo "========== STATUS KUCING1000cc ==========="
+
+# 1. ZRAM Size
+ZRAM_SZ=$(zramctl --noheadings --output DISKSIZE /dev/zram0)
+printf "1.  %-15s : %s\n" "ZRAM Size" "$ZRAM_SZ"
+
+# 2. Swappiness
+SWAP=$(cat /proc/sys/vm/swappiness)
+printf "2.  %-15s : %s\n" "Swappiness" "$SWAP"
+
+# 3. I/O Scheduler
+SCHED=$(cat /sys/block/nvme0n1/queue/scheduler | grep -o "\[none\]" || echo "bukan none!")
+printf "3.  %-15s : %s\n" "I/O Scheduler" "$SCHED"
+
+# 4. Battery Mode
+BATT_MODE=$(cat /sys/bus/platform/drivers/ideapad_acpi/VPC2004:00/conservation_mode 2>/dev/null | sed 's/1/CONSERVATION (AWET)/;s/0/NORMAL/')
+printf "4.  %-15s : %s\n" "Battery Mode" "$BATT_MODE"
+
+# 5. TLP Status
+TLP_S=$(tlp-stat -s 2>/dev/null | grep "tlp  *=" | awk '{print $3}' | sed 's/,//' || echo "Not Found")
+printf "5.  %-15s : %s\n" "TLP Status" "$TLP_S"
+
+# 6. Suhu CPU
+TEMP=$(sensors | grep "Tctl" | awk '{print $2}')
+printf "6.  %-15s : %s\n" "Suhu CPU" "$TEMP"
+
+# 7. Firewall (UFW)
+FW=$(ufw status | grep -i "Status:" | awk '{print $2}')
+printf "7.  %-15s : %s\n" "Firewall (UFW)" "$FW"
+
+# 8. DNS Encryption
+DNS=$(pgrep dnscrypt-proxy > /dev/null && echo "RUNNING" || echo "STOPPED")
+printf "8.  %-15s : %s\n" "DNS Encryption" "$DNS"
+
+# 9. SSH Server
+SSH=$(pgrep sshd > /dev/null && echo "OPEN (WARNING!)" || echo "CLOSED (SAFE)")
+printf "9.  %-15s : %s\n" "SSH Server" "$SSH"
+
+# 10. SSD TRIM
+TRIM=$(fstrim -v /)
+printf "10. %-15s : %s\n" "SSD TRIM" "$TRIM"
+
+# 11. Power Status & Draw
+AC_STATUS=$(cat /sys/class/power_supply/AC/online 2>/dev/null)
+BATT_STATUS=$(cat /sys/class/power_supply/BAT0/status 2>/dev/null)
+RAW_POWER=$(cat /sys/class/power_supply/BAT0/power_now 2>/dev/null)
+
+if [ "$AC_STATUS" -eq 1 ] 2>/dev/null; then
+    if [ "$BATT_STATUS" = "Charging" ]; then
+        POWER_WATT=$(echo "scale=2; $RAW_POWER / 1000000" | bc)
+        POWER_OUT="CHARGING ($POWER_WATT Watt)"
+    else
+        POWER_OUT="AC POWER (Battery Full/Conservation)"
+    fi
+else
+    POWER_WATT=$(echo "scale=2; $RAW_POWER / 1000000" | bc)
+    POWER_OUT="DISCHARGING ($POWER_WATT Watt)"
+fi
+printf "11. %-15s : %s\n" "Power Status" "$POWER_OUT"
+
+# 12. ZRAM Usage
+Z_DATA=$(zramctl --noheadings --output DATA,COMPR /dev/zram0 | awk '{$1=$1; print $1 " " $2}')
+printf "12. %-15s : %s (Ori vs Compr)\n" "ZRAM Usage" "$Z_DATA"
+
+# 13. XFS Health
+XFS_FRAG=$(xfs_db -c frag -r /dev/nvme0n1p3 | grep "fragmentation factor" | awk '{print $7}')
+printf "13. %-15s : %s Fragmentation\n" "XFS Health" "$XFS_FRAG"
+
+# 14. Network & Speed (Real-time)
+IP_L=$(ip addr show | grep -w "inet" | grep -v "127.0.0.1" | awk '{print $2}' | cut -d/ -f1 | head -n1)
+if ping -c 1 8.8.8.8 > /dev/null 2>&1; then
+    # Menggunakan speedtest-cli yang baru diinstall
+    RES=$(speedtest-cli --simple 2>/dev/null)
+    DL=$(echo "$RES" | grep "Download" | awk '{print $2 " " $3}')
+    UL=$(echo "$RES" | grep "Upload" | awk '{print $2 " " $3}')
+    [ -z "$DL" ] && NET_STAT="OK ($IP_L) | Speedtest Error" || NET_STAT="OK ($IP_L) | DL: $DL | UL: $UL"
+else
+    NET_STAT="OFFLINE"
+fi
+printf "14. %-15s : %s\n" "Network/Speed" "$NET_STAT"
+
+echo "=========================================="

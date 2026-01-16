@@ -1,0 +1,16 @@
+#!/bin/bash
+# Script Auto-Upgrade Kernel + Fix Howdy
+# Khusus Yoga Pro 7 - Kucing1000cc
+
+echo "--- Memulai proses update initrd & grub ---"
+KERNEL_VER=$(readlink -f /boot/vmlinuz-generic | rev | cut -d- -f1 | rev)
+mkinitrd -c -k $KERNEL_VER -m xfs && grub-mkconfig -o /boot/grub/grub.cfg
+
+echo ""
+echo "--- Re-building Howdy PAM module ---"
+# Masuk ke folder build yang sudah kita pindahin tadi
+cd /usr/local/src/howdy/build
+ninja && ninja install
+
+echo ""
+echo "Selesai! Kernel sudah di-update dan Howdy sudah di-sinkronisasi."

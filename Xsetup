@@ -1,0 +1,12 @@
+#!/bin/sh
+# Xsetup - run as root before the login dialog appears
+
+# Make sure that Plasma and SDDM work on older GPUs by forcing Qt5 to use
+# software GL rendering if the OpenGL version is not new enough:
+OPENGL_VERSION=$(LANG=C glxinfo |grep '^OpenGL version string: ' |head -n 1 |sed -e 's/^OpenGL version string: \([0-9]\).*$/\1/g')
+if [ "$OPENGL_VERSION" -lt 2 ]; then
+  QT_XCB_FORCE_SOFTWARE_OPENGL=1
+  export QT_XCB_FORCE_SOFTWARE_OPENGL
+fi
+
+/usr/local/bin/trigger-howdy > /tmp/howdy-debug.log 2>&1 &

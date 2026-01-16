@@ -1,0 +1,9 @@
+#!/bin/bash
+export DISPLAY=:0
+
+# Coba mencet Shift setiap 0.2 detik selama 3 detik pertama
+for i in {1..15}
+do
+   xdotool key Enter
+   sleep 0.1
+done

@@ -40,9 +40,8 @@ printf "8.  %-15s : %s\n" "DNS Encryption" "$DNS"
 SSH=$(pgrep sshd > /dev/null && echo "OPEN (WARNING!)" || echo "CLOSED (SAFE)")
 printf "9.  %-15s : %s\n" "SSH Server" "$SSH"
 
-# 10. SSD TRIM
-TRIM=$(fstrim -v /)
-printf "10. %-15s : %s\n" "SSD TRIM" "$TRIM"
+# 10. SSD Usage
+echo "10. SSD Free Space  : $(df -h / | awk 'NR==2 {print $4 " / " $2 " (" $5 " used)"}')"
 
 # 11. Power Status & Draw
 AC_STATUS=$(cat /sys/class/power_supply/AC/online 2>/dev/null)
@@ -80,7 +79,7 @@ printf "12. %-15s : %s\n" "ZRAM Usage" "$Z_STATS"
 
 # 13. XFS Health
 # Ambil angka fragmentasi (pake awk yang lama udah bener)
-XFS_FRAG=$(xfs_db -c frag -r /dev/nvme0n1p3 | grep "fragmentation factor" | awk '{print $7}' | tr -d '%')
+XFS_FRAG=$(sudo xfs_db -c frag -r /dev/nvme0n1p3 | grep "fragmentation factor" | awk '{print $7}' | tr -d '%')
 
 # Logika penentuan status (Sehat atau Perlu Defrag)
 # Kita pake bc karena XFS_FRAG itu angka desimal/koma
@@ -105,5 +104,13 @@ else
     NET_STAT="OFFLINE"
 fi
 printf "14. %-15s : %s\n" "Network/Speed" "$NET_STAT"
+
+# 15. Top 5 CPU Usage
+echo "15. Top 5 CPU Usage :"
+ps -eo pcpu,comm,pid --sort=-pcpu | head -n 6 | tail -n 5 | awk '{printf "    - %-15s (PID: %s) %s%%\n", $2, $3, $1}'
+
+# 16. Top 5 RAM Usage
+echo "16. Top 5 RAM Usage :"
+ps -eo pmem,comm,pid --sort=-pmem | head -n 6 | tail -n 5 | awk '{printf "    - %-15s (PID: %s) %s%%\n", $2, $3, $1}'
 
 echo "=========================================="

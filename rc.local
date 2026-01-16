@@ -21,6 +21,10 @@ fi
 # 3. Kucing 1000cc Tuning
 sysctl vm.swappiness=100
 echo "none" > /sys/block/nvme0n1/queue/scheduler
+# Optimasi RAM: Kardus Gede (Hugepages) buat CPU makin enteng
+if [ -f /sys/kernel/mm/transparent_hugepage/enabled ]; then
+  echo always > /sys/kernel/mm/transparent_hugepage/enabled
+fi
 
 # 4. CPU Power Management
 # Baris scaling_governor manual dihapus karena sudah diurus oleh auto-cpufreq/TLP
@@ -38,8 +42,10 @@ if [ -x /opt/dnscrypt-proxy/dnscrypt-proxy ]; then
   cd /opt/dnscrypt-proxy
   ./dnscrypt-proxy > /dev/null 2>&1 &
 fi
+
 # 7. Firewall Security
 if [ -x /usr/sbin/ufw ]; then
   echo "Starting UFW Firewall..."
   /usr/sbin/ufw --force enable
 fi
+

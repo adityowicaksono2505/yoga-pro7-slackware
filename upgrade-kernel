@@ -13,4 +13,24 @@ cd /usr/local/src/howdy/build
 ninja && ninja install
 
 echo ""
+echo "--- Memulai Verifikasi Akhir (Kucing1000cc Check) ---"
+echo "----------------------------------------------------------"
+
+# 1. Cek Symlink Kernel
+KERNEL_LINK=$(ls -l /boot/vmlinuz-generic | awk '{print $NF}')
+echo -e "📍 Symlink Kernel : \e[32m$KERNEL_LINK\e[0m"
+
+# 2. Cek Kesesuaian KERNEL_VER dengan Symlink
+if [[ "$KERNEL_LINK" == *"$KERNEL_VER"* ]]; then
+    echo -e "✅ Kernel Match   : \e[32mSesuai ($KERNEL_VER)\e[0m"
+else
+    echo -e "❌ Kernel Match   : \e[31mMISMATCH! (Cek manual /boot)\e[0m"
+fi
+
+# 3. Cek Timestamp Initrd (Harus yang terbaru)
+INITRD_TIME=$(ls -l /boot/initrd.gz | awk '{print $6, $7, $8}')
+echo -e "📦 Initrd Updated : \e[32m$INITRD_TIME\e[0m"
+
+echo "----------------------------------------------------------"
 echo "Selesai! Kernel sudah di-update dan Howdy sudah di-sinkronisasi."
+echo "Silakan reboot jika status di atas sudah Hijau semua."

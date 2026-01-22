@@ -23,6 +23,7 @@ Sistem ini telah dituning untuk keseimbangan antara performa tinggi dan efisiens
 | `Xsetup` | `/usr/share/sddm/scripts/Xsetup` | Entry point startup SDDM untuk pemicu Howdy |
 | `zram` | `/etc/default/zram` | Konfigurasi kapasitas & algoritma ZRAM |
 | `rc.zram` | `/etc/rc.d/rc.zram` | Script init untuk aktivasi ZRAM |
+| `grub` | `/etc/default/grub` | Konfigurasi grub versi 2.14 |
 | `zram.conf` | `/etc/modprobe.d/zram.conf` | Limitasi device zram di level kernel |
 | `sysctl.conf` | `/etc/sysctl.conf` | Tuning VFS Cache & VM Swappiness (100) |
 | `cek-laptop` | `/usr/local/bin/cek-laptop` | Dashboard monitoring "Kucing1000cc" |

@@ -1,0 +1,70 @@
+# If you change this file, run grub-mkconfig -o /boot/grub/grub.cfg
+# afterwards to update /boot/grub/grub.cfg.
+
+# Memaksa driver grafis UEFI
+GRUB_VIDEO_BACKEND="efi_gop"
+GRUB_PRELOAD_MODULES="all_video gzio gettext font video_bochs video_cirrus"
+
+GRUB_DEFAULT=0
+#GRUB_HIDDEN_TIMEOUT=0
+GRUB_HIDDEN_TIMEOUT_QUIET=false
+GRUB_TIMEOUT=3
+GRUB_DISTRIBUTOR=$( sed 's/Slackware /Slackware-/' /etc/slackware-version )
+GRUB_CMDLINE_LINUX_DEFAULT="quiet loglevel=3 video=2560x1600 fbcon=font:TER16x8 vt.global_cursor_default=0"
+GRUB_CMDLINE_LINUX=""
+
+# Aktifkan mode grafis resolusi tinggi
+GRUB_TERMINAL_OUTPUT="gfxterm"
+
+# Uncomment to disable graphical terminal (grub-pc only):
+#GRUB_TERMINAL=console
+
+# The resolution used on graphical terminal.
+# Note that you can use only modes which your graphic card supports via VBE.
+# You can see them in real GRUB with the command `vbeinfo'.
+# We will enable this by default to prevent very small text on HiDPI displays.
+# Please note that GRUB draws the display with NO video acceleration, so
+# depending on the video hardware a resolution greater than 1024x768 may
+# result in a very slow menu.
+GRUB_GFXMODE=2560x1600x32
+
+# Font used on the graphical terminal:
+GRUB_FONT=/boot/grub/fonts/hack.pf2
+
+# Have the Linux kernel keep the GRUB_GFXMODE resolution.
+# This is safer for penguins.
+GRUB_GFXPAYLOAD_LINUX=keep
+
+# Uncomment if you don't want GRUB to pass "root=UUID=xxx" parameter to Linux:
+#GRUB_DISABLE_LINUX_UUID=true
+
+# Uncomment to disable generation of recovery mode menu entries:
+GRUB_DISABLE_RECOVERY=true
+
+# Search for other operating systems with os-prober.
+# If you don't want this, you can do any of these things to disable it:
+# - change to "true"
+# - comment it out, since disabled is the default
+# - remove the executable bit from /etc/grub.d/30_os-prober
+GRUB_DISABLE_OS_PROBER=true
+
+# Disable the submenus:
+GRUB_DISABLE_SUBMENU=yes
+
+# What kernel filetypes to display in the menu. This may be set to "files"
+# (only display kernels that are files), "symlinks" (only display kernels
+# that are symbolic links), or "both".
+GRUB_DISPLAY_KERNEL_FILETYPES=both
+
+# Menu Warna
+GRUB_COLOR_NORMAL="white/black"
+GRUB_COLOR_HIGHLIGHT="white/dark-gray"
+
+# This option allows defining an initrd name that will match any kernel as a
+# fallback if no other matching initrd is found. You may use any name you like.
+#GRUB_INITRD_FALLBACK_NAME=initrd.gz
+
+# This script (if it exists and is executable) will be run whenever the GRUB
+# package is installed/reinstalled. Usually it runs grub-install with the
+# correct options for this machine, followed by update-grub.
+GRUB_INSTALL_SCRIPT=boot/grub/grub-install-slackware.sh
